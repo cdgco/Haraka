@@ -294,7 +294,9 @@ describe('server', () => {
             const restoreHaproxyConfig = useHaproxyFixture(this.server, 'haproxy_allowed')
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 40)
+            // PROXY-before-TLS takes slightly longer than the default 10 ms timeout on Windows,
+            // use 50 ms timeout to avoid flaky tests.
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 50)
             const tlsErrors = []
             let raw
             let client
