@@ -294,7 +294,7 @@ describe('server', () => {
             const restoreHaproxyConfig = useHaproxyFixture(this.server, 'haproxy_allowed')
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 30)
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 40)
             const tlsErrors = []
             let raw
             let client
