@@ -294,7 +294,7 @@ describe('server', () => {
             const restoreHaproxyConfig = useHaproxyFixture(this.server, 'haproxy_allowed')
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10000)
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10)
             const tlsErrors = []
             let raw
             let client
@@ -350,7 +350,7 @@ describe('server', () => {
             const restoreHaproxyConfig = useHaproxyFixture(this.server, 'haproxy_allowed')
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10000)
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10)
             const tlsErrors = []
             let client
 
@@ -391,7 +391,7 @@ describe('server', () => {
         it('preserves TLS server events for SMTPS connections', async () => {
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10000)
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10)
             let ocspRequests = 0
             let first
             let second
@@ -465,7 +465,7 @@ describe('server', () => {
             let client
 
             try {
-                server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10000)
+                server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10)
                 assert.equal(server.tlsServer, undefined)
 
                 await listen(server)
@@ -498,7 +498,7 @@ describe('server', () => {
             const restoreHaproxyConfig = useHaproxyFixture(this.server, 'haproxy_untrusted')
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10000)
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10)
             let client
 
             try {
@@ -532,7 +532,7 @@ describe('server', () => {
             const restoreHaproxyConfig = useHaproxyFixture(this.server, 'haproxy_allowed')
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10000)
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10)
             let raw
 
             try {
@@ -555,7 +555,7 @@ describe('server', () => {
             const restoreHaproxyConfig = useHaproxyFixture(this.server, 'haproxy_allowed')
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10000)
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10)
             let raw
 
             try {
@@ -580,7 +580,7 @@ describe('server', () => {
             global.setTimeout = (fn, ms, ...args) => originalSetTimeout(fn, ms === 30 * 1000 ? 20 : ms, ...args)
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10000)
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10)
             let raw
 
             try {
@@ -603,7 +603,7 @@ describe('server', () => {
             const restoreHaproxyConfig = useHaproxyFixture(this.server, 'haproxy_allowed')
             this.server.cfg.main.smtps_port = 0
 
-            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10000)
+            const server = await this.server.get_smtp_server(endpoint('127.0.0.1:0'), 10)
             let raw
             let client
 
