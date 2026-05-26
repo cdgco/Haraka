@@ -34,53 +34,6 @@ const cfg = config.get('connection.ini', {
     ],
 })
 
-const haproxy_hosts_ipv4 = []
-const haproxy_hosts_ipv6 = []
-
-for (const ip of cfg.haproxy.hosts) {
-    if (!ip) continue
-    if (net.isIPv6(ip.split('/')[0])) {
-        haproxy_hosts_ipv6.push([ipaddr.IPv6.parse(ip.split('/')[0]), parseInt(ip.split('/')[1] || 64)])
-    } else {
-        haproxy_hosts_ipv4.push([ipaddr.IPv4.parse(ip.split('/')[0]), parseInt(ip.split('/')[1] || 32)])
-    }
-}
-
-function normalize_ip(ip) {
-    if (!net.isIP(ip)) return null
-    return ipaddr.process(ip).toString()
-}
-
-function is_haproxy_allowed(ip) {
-    const normalized_ip = normalize_ip(ip)
-    if (!normalized_ip) return false
-
-    const ha_list = net.isIPv6(normalized_ip) ? haproxy_hosts_ipv6 : haproxy_hosts_ipv4
-    return ha_list.some((element) => ipaddr.parse(normalized_ip).match(element[0], element[1]))
-}
-
-function parse_proxy_line(line) {
-    const proxyLine = line.toString().replace(/\r?\n$/, '')
-    const match = /^(?:PROXY )?(TCP4|TCP6|UNKNOWN) (\S+) (\S+) (\d+) (\d+)$/.exec(proxyLine)
-    if (!match) return null
-
-    const proto = match[1]
-    const src_ip = match[2]
-    const dst_ip = match[3]
-    const src_port = match[4]
-    const dst_port = match[5]
-
-    if (proto === 'TCP4' && ipaddr.IPv4.isValid(src_ip) && ipaddr.IPv4.isValid(dst_ip)) {
-        return { type: 'haproxy', proto, src_ip, src_port, dst_ip, dst_port }
-    }
-
-    if (proto === 'TCP6' && ipaddr.IPv6.isValid(src_ip) && ipaddr.IPv6.isValid(dst_ip)) {
-        return { type: 'haproxy', proto, src_ip, src_port, dst_ip, dst_port }
-    }
-
-    return null
-}
-
 class Connection {
     constructor(client, server, smtp_cfg) {
         this.client = client
@@ -225,19 +178,20 @@ class Connection {
             self.process_data(data)
         })
 
-        // SMTPS pre-parses PROXY before TLS; don't wait for a second PROXY line here.
-        if (self.client.haraka_proxy) {
+        // SMTPS pre-parser state: proxy means the PROXY line was already consumed;
+        // peer_allowed means a trusted PROXY peer sent direct TLS instead.
+        const smtps = self.client.haraka_smtps
+        if (smtps?.proxy) {
             self.proxy.allowed = true
             return
         }
 
-        // SMTPS pre-parser already checked this allowed peer and found direct TLS.
-        if (self.client.haraka_proxy_checked) {
+        if (smtps?.peer_allowed) {
             plugins.run_hooks('connect_init', self)
             return
         }
 
-        if (is_haproxy_allowed(self.remote.ip)) {
+        if (net_utils.is_haproxy_allowed(self.remote.ip)) {
             self.proxy.allowed = true
             // Wait for PROXY command
             self.proxy.timer = setTimeout(() => {
@@ -1229,7 +1183,7 @@ class Connection {
             return this.disconnect()
         }
 
-        const proxy = parse_proxy_line(line)
+        const proxy = net_utils.parse_proxy_line(line)
         if (!proxy) {
             this.respond(421, 'Invalid PROXY format')
             return this.disconnect()
@@ -1894,9 +1848,6 @@ class Connection {
 }
 
 exports.Connection = Connection
-exports.is_haproxy_allowed = is_haproxy_allowed
-exports.normalize_ip = normalize_ip
-exports.parse_proxy_line = parse_proxy_line
 
 exports.createConnection = (client, server, cfg) => {
     return new Connection(client, server, cfg)
